@@ -4,7 +4,7 @@ import { DashboardScreen } from '../features/dashboard/DashboardScreen';
 import { ModulesScreen } from '../features/modules/ModulesScreen';
 import { AssessmentsDashboardScreen } from '../features/assessments/AssessmentsDashboardScreen';
 import { ProgressScreen } from '../features/progress/ProgressScreen';
-import { colors } from '../theme/colors';
+import { colors } from '../core/theme/colors';
 import { Text } from 'react-native';
 
 const Tab = createBottomTabNavigator();
@@ -59,3 +59,4 @@ export const MainTabNavigator = () => {
     </Tab.Navigator>
   );
 };
+

@@ -5,7 +5,7 @@
  */
 
 import { baseApi } from './baseApi';
-import type { CertificateResponse } from '../types/certificate';
+import type { CertificateResponse } from '../core/types/certificate';
 
 import certificateMock from '../mocks/certificate.json';
 
@@ -24,3 +24,4 @@ export const certificateApi = baseApi.injectEndpoints({
 });
 
 export const { useGetCertificateQuery, useLazyGetCertificateQuery } = certificateApi;
+

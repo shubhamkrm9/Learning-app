@@ -12,7 +12,7 @@ import type {
   ProgressUpdateResponse,
   ModuleCompleteRequest,
   ModuleCompleteResponse,
-} from '../types/api';
+} from '../core/types/api';
 
 const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(() => resolve(), ms));
 
@@ -43,3 +43,4 @@ export const progressApi = baseApi.injectEndpoints({
 
 export const { useUpdateVideoProgressMutation, useCompleteModuleMutation } =
   progressApi;
+

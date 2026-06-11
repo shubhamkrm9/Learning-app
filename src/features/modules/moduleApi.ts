@@ -6,7 +6,7 @@
  */
 
 import { baseApi } from './baseApi';
-import type { Module, ModuleDetail } from '../types/module';
+import type { Module, ModuleDetail } from '../core/types/module';
 
 import modulesMock from '../mocks/modules.json';
 import moduleDetailsMock from '../mocks/moduleDetails.json';
@@ -39,3 +39,4 @@ export const moduleApi = baseApi.injectEndpoints({
 });
 
 export const { useGetModulesQuery, useGetModuleDetailsQuery } = moduleApi;
+

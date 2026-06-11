@@ -5,8 +5,8 @@
  * and checks if a module is fully completed.
  */
 
-import type { RootState } from '../store';
-import { unlockModule } from '../store/slices/progressSlice';
+import type { RootState } from '../../../core/store';
+import { unlockModule } from '../../progress/progressSlice';
 
 /**
  * Check if module is complete: all lessons watched AND all assessments passed.

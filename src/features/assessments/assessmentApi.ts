@@ -10,7 +10,7 @@ import type {
   Assessment,
   AssessmentSubmission,
   AssessmentResult,
-} from '../types/assessment';
+} from '../core/types/assessment';
 
 import assessmentsMock from '../mocks/assessments.json';
 
@@ -52,3 +52,4 @@ export const assessmentApi = baseApi.injectEndpoints({
 
 export const { useGetAssessmentQuery, useSubmitAssessmentMutation } =
   assessmentApi;
+

@@ -8,8 +8,8 @@
  * ╚══════════════════════════════════════════════════════════════╝
  */
 
-import type { Lesson, ModuleSection } from '../types/models';
-import type { Assessment, AssessmentResult } from '../types/models';
+import type { Lesson, ModuleSection } from '../core/types/models';
+import type { Assessment, AssessmentResult } from '../core/types/models';
 
 // ─── Endpoint URLs ──────────────────────────────────────────
 // Change these strings when your backend URLs change.
@@ -181,3 +181,4 @@ function formatDuration(seconds: number): string {
   const remainMins = mins % 60;
   return `${hours}h ${remainMins}m`;
 }
+

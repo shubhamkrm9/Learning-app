@@ -1,4 +1,4 @@
-import type { Module, ModuleSection } from '../types/models';
+import type { Module, ModuleSection } from '../core/types/models';
 
 export const mockModules: Module[] = [
   {
@@ -116,3 +116,4 @@ export const mockModuleSections: Record<string, ModuleSection[]> = {
     },
   ],
 };
+

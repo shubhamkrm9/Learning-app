@@ -9,7 +9,7 @@ import {
 import { VideoPlayer } from '../components/VideoPlayer';
 import { LessonTabs } from '../components/LessonTabs';
 import { ModuleRepository } from '../../modules/moduleApi';
-import { ApiService } from '../../../core/api/apiConfig';
+
 import { API_URLS } from '../../../core/api/apiConfig';
 import { colors } from '../../../core/theme/colors';
 import { typography } from '../../../core/theme/typography';
@@ -101,10 +101,12 @@ export const VideoPlayerScreen = ({ route, navigation }: any) => {
 
   if (!lessonData) return null;
 
+  const baseUrl = useAppSelector((state) => state.app.baseUrl);
+
   // Build video URL: prefer API stream URL, fallback to mock videoUrl
   const videoUrl =
-    ApiService.getBaseUrl()
-      ? ApiService.getVideoStreamUrl(lessonId)
+    baseUrl
+      ? `${baseUrl.replace(/\/$/, '')}${API_URLS.VIDEO_STREAM(lessonId)}`
       : lessonData.videoUrl;
 
   const startPosition = 0;

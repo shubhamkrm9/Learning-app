@@ -7,12 +7,12 @@
 
 import type { Middleware } from '@reduxjs/toolkit';
 import { AnalyticsEvents } from '../../constants';
-import type { AnalyticsPayload } from '../../types/analytics';
+import type { AnalyticsPayload } from '../../core/types/analytics';
 
 // Action type constants to match against
 const ACTION_EVENT_MAP: Record<string, AnalyticsEvents> = {
-  'sdk/initializeSDK': AnalyticsEvents.SDK_INITIALIZED,
-  'sdk/launchSDK': AnalyticsEvents.SDK_LAUNCHED,
+  'app/initializeApp': AnalyticsEvents.SDK_INITIALIZED,
+  'app/launchApp': AnalyticsEvents.SDK_LAUNCHED,
   'module/setSelectedModule': AnalyticsEvents.MODULE_STARTED,
   'progress/markModuleCompleted': AnalyticsEvents.MODULE_COMPLETED,
   'assessment/setAssessment': AnalyticsEvents.ASSESSMENT_STARTED,
@@ -53,3 +53,4 @@ export const analyticsMiddleware: Middleware = (_store) => (next) => (action) =>
 
   return result;
 };
+

@@ -1,4 +1,4 @@
-import type { Assessment, Question, AssessmentResult } from '../types/models';
+import type { Assessment, Question, AssessmentResult } from '../core/types/models';
 
 export const mockQuestions: Record<string, Question[]> = {
   'a-l1': [
@@ -98,3 +98,4 @@ export const correctAnswers: Record<string, string> = {
 };
 
 export const mockResults: Record<string, AssessmentResult> = {};
+

@@ -1,4 +1,4 @@
-import type { UserProgress, LearningActivity } from '../types/models';
+import type { UserProgress, LearningActivity } from '../core/types/models';
 
 export const mockUserProgress: UserProgress = {
   userId: 'u1',
@@ -39,3 +39,4 @@ export const mockRecentActivities: LearningActivity[] = [
     type: 'badge_earned',
   }
 ];
+
