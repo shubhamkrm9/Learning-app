@@ -1,0 +1,87 @@
+{
+  "module_1": {
+    "success": true,
+    "data": {
+      "id": "module_1",
+      "title": "Introduction to React Native",
+      "completionPercentage": 100,
+      "videos": [
+        {
+          "id": "video_1",
+          "title": "What is React Native?",
+          "duration": 600,
+          "watchedPercentage": 100,
+          "isCompleted": true,
+          "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+        },
+        {
+          "id": "video_2",
+          "title": "Project Setup",
+          "duration": 900,
+          "watchedPercentage": 100,
+          "isCompleted": true,
+          "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+        }
+      ],
+      "assessment": {
+        "id": "assessment_1",
+        "isUnlocked": true,
+        "passingPercentage": 75
+      }
+    }
+  },
+  "module_2": {
+    "success": true,
+    "data": {
+      "id": "module_2",
+      "title": "Navigation in SDK",
+      "completionPercentage": 0,
+      "videos": [
+        {
+          "id": "video_3",
+          "title": "React Navigation Basics",
+          "duration": 720,
+          "watchedPercentage": 0,
+          "isCompleted": false,
+          "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+        },
+        {
+          "id": "video_4",
+          "title": "Independent Navigation Containers",
+          "duration": 850,
+          "watchedPercentage": 0,
+          "isCompleted": false,
+          "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
+        }
+      ],
+      "assessment": {
+        "id": "assessment_2",
+        "isUnlocked": false,
+        "passingPercentage": 75
+      }
+    }
+  },
+  "module_3": {
+    "success": true,
+    "data": {
+      "id": "module_3",
+      "title": "State Management & RTK",
+      "completionPercentage": 0,
+      "videos": [
+        {
+          "id": "video_5",
+          "title": "Redux Toolkit Architecture",
+          "duration": 900,
+          "watchedPercentage": 0,
+          "isCompleted": false,
+          "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4"
+        }
+      ],
+      "assessment": {
+        "id": "assessment_3",
+        "isUnlocked": false,
+        "passingPercentage": 75
+      }
+    }
+  }
+}

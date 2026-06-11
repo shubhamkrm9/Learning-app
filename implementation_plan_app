@@ -1,0 +1,481 @@
+# SDK → Standalone App Migration Plan
+
+Convert the Learning Module SDK + example app into a fully independent standalone React Native application on a new `independent` git branch.
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Branch strategy**: We will create a new git branch `independent` from the current branch. On this branch, the entire repo structure will be overhauled — SDK packaging removed, example app promoted to root, and all code reorganized.
+
+> [!WARNING]
+> **Destructive on branch**: The `independent` branch will remove SDK-specific files (`src/sdk/`, `src/multiply.tsx`, monorepo configs, builder-bob setup). The `main` branch is untouched.
+
+> [!CAUTION]
+> **Android/iOS native projects**: Moving `example/android/` and `example/ios/` to root requires careful handling of path references in `settings.gradle`, `build.gradle`, `Podfile`, etc. We'll verify these post-move.
+
+## Open Questions
+
+> [!IMPORTANT]
+> **Q1**: Should I also update the `app.json` display name from `LearningSDKExample` to `Learning App` (or similar)?
+
+> [!IMPORTANT]
+> **Q2**: The current example app's babel config uses `react-native-builder-bob/babel-config` which is SDK-specific. The standalone app will use a standard `@react-native/babel-preset` config. Is that acceptable?
+
+---
+
+## Current Architecture Analysis
+
+### SDK Code (`src/`)
+| Layer | Files | Purpose |
+|-------|-------|---------|
+| **SDK Lifecycle** | `sdk/LearningSDK.ts`, `sdk/LearningSDKView.tsx`, `sdk/SDKProvider.tsx`, `sdk/SDKConfig.ts`, `sdk/SDKContext.ts` | Event-driven SDK init/launch/destroy pattern — **will be removed** |
+| **API Layer** | `api/ApiService.ts`, `api/ApiConfig.ts`, `api/baseApi.ts`, `api/moduleApi.ts`, `api/assessmentApi.ts`, `api/certificateApi.ts`, `api/progressApi.ts` | HTTP client + RTK Query endpoints — **will be consolidated to RTK Query only** |
+| **Store** | `store/index.ts`, `store/slices/{sdk,auth,module,progress,assessment,certificate}Slice.ts`, `store/middleware/analyticsMiddleware.ts` | Redux state management — **will be kept, reorganized into features** |
+| **Features** | `features/{dashboard,modules,assessments,certificates,progress,video}/` | Screen components — **will be kept and enhanced** |
+| **Shared Components** | `components/{Assessment,Button,Card,EmptyState,ErrorState,Header,Loader,ProgressBar}/` | Reusable UI — **will be moved to `shared/`** |
+| **Navigation** | `navigation/{RootNavigator,MainTabNavigator}.tsx` | App navigation — **will be simplified (remove SDK modal pattern)** |
+| **Repositories** | `repositories/{Assessment,Module,Progress}Repository.ts` | Data access — **will be replaced by RTK Query with USE_MOCK flag** |
+| **Services** | `services/{ResumeLearning,Unlock}Service.ts` | Business logic — **will be moved to feature folders** |
+| **Types** | `types/{index,module,assessment,certificate,api,analytics,navigation}.ts`, `types/models/` | TypeScript types — **will be reorganized by feature** |
+| **Theme** | `theme/{colors,typography,spacing,index}.ts` | Design tokens — **will be moved to `core/theme/`** |
+| **Mocks** | `mocks/{mockModules,mockAssessments,mockProgress}.ts`, JSON files | Mock data — **will be kept in `core/mocks/`** |
+| **Constants** | `constants/index.ts` | Business rules, enums — **will be moved to `core/constants/`** |
+| **Legacy Screens** | `screens/{Assessment,AssessmentResult,Assessments,Certificate,Dashboard,ModuleCompletion,ModuleDetail,Modules,Progress,Video}/` | Older screen copies — **only `ModuleCompletionScreen` is used; rest will be deleted** |
+
+### Example App (`example/`)
+| File | Purpose | Action |
+|------|---------|--------|
+| `index.js` | App entry point | **Promote to root** |
+| `src/App.tsx` | SDK init + launch | **Rewrite** — direct app boot |
+| `package.json` | Dependencies | **Rewrite** — add all SDK deps |
+| `babel.config.js` | Uses builder-bob | **Rewrite** — standard preset |
+| `metro.config.js` | Monorepo config | **Rewrite** — standard config |
+| `app.json` | App name | **Update name** |
+| `android/` | Android native project | **Promote to root** |
+| `ios/` | iOS native project | **Promote to root** |
+
+### Dependency Map (SDK → Example)
+
+```mermaid
+graph TD
+    A[example/src/App.tsx] -->|"import { LearningSDK, LearningSDKView }"| B[src/sdk/]
+    B --> C[src/navigation/]
+    B --> D[src/store/]
+    B --> E[src/api/]
+    C --> F[src/features/]
+    C --> G[src/screens/ModuleCompletion/]
+    F --> H[src/components/]
+    F --> I[src/types/]
+    F --> J[src/theme/]
+    F --> K[src/repositories/]
+    F --> L[src/services/]
+    K --> E
+    K --> M[src/mocks/]
+    D --> E
+    H --> J
+    F --> D
+```
+
+---
+
+## Proposed Changes
+
+### Phase 1: Branch Setup
+
+#### Git Operations
+- Create branch `independent` from current HEAD
+- All subsequent changes happen on this branch only
+
+---
+
+### Phase 2: Root-Level Restructuring
+
+#### [DELETE] SDK packaging files (root level)
+Remove monorepo/SDK-specific files that won't exist in the standalone app:
+- `src/index.tsx` (SDK public export)
+- `src/multiply.tsx` (placeholder)
+- `src/sdk/` (entire directory — 5 files)
+- `tsconfig.build.json` (builder-bob specific)
+- `turbo.json` (monorepo tool)
+- `.yarnrc.yml` (Yarn PnP config for monorepo)
+- `.yarn/` (directory)
+
+#### [MODIFY] [package.json](file:///c:/Users/Rahul%20Kumar/Downloads/React_Native/learning/package.json)
+Complete rewrite — transform from SDK library package to standalone app:
+- Remove: `main`, `types`, `exports`, `files`, `publishConfig`, `workspaces`, `react-native-builder-bob`, `create-react-native-library`
+- Remove devDeps: `react-native-builder-bob`, `turbo`, `del-cli`
+- Add scripts: `android`, `ios`, `start`, `build:android`, `build:ios`
+- Merge example's dependencies into this file
+- Name: `learning-app`
+
+#### [MODIFY] [index.js](file:///c:/Users/Rahul%20Kumar/Downloads/React_Native/learning/example/index.js) → promoted to root
+Move from `example/index.js` to root `index.js`
+
+#### [MODIFY] [app.json](file:///c:/Users/Rahul%20Kumar/Downloads/React_Native/learning/example/app.json) → promoted to root
+Move from `example/app.json` to root, update name to `LearningApp`
+
+#### [NEW] `babel.config.js` (root)
+Standard React Native babel config (no builder-bob)
+
+#### [NEW] `metro.config.js` (root)
+Standard metro config (no monorepo resolver)
+
+#### Promote `example/android/` → root `android/`
+#### Promote `example/ios/` → root `ios/`
+#### [DELETE] `example/` directory after all files promoted
+
+---
+
+### Phase 3: Source Code Architecture
+
+#### Target Structure
+```
+src/
+├── App.tsx                          # Root component (Redux Provider + Navigation)
+├── appConfig.ts                     # Hardcoded baseUrl, accessToken, USE_MOCK flag
+│
+├── core/
+│   ├── api/
+│   │   ├── apiClient.ts             # Fetch wrapper (simplified ApiService)
+│   │   ├── baseApi.ts               # RTK Query base config
+│   │   └── apiConfig.ts             # Endpoint URLs + transformers
+│   ├── store/
+│   │   ├── index.ts                 # configureStore + typed hooks
+│   │   ├── appSlice.ts              # App state (was sdkSlice)
+│   │   ├── authSlice.ts             # Auth state
+│   │   └── middleware/
+│   │       └── analyticsMiddleware.ts
+│   ├── theme/
+│   │   ├── colors.ts
+│   │   ├── typography.ts
+│   │   ├── spacing.ts
+│   │   └── index.ts
+│   ├── constants/
+│   │   └── index.ts
+│   ├── mocks/
+│   │   ├── mockModules.ts
+│   │   ├── mockAssessments.ts
+│   │   ├── mockProgress.ts
+│   │   ├── modules.json
+│   │   ├── moduleDetails.json
+│   │   ├── assessments.json
+│   │   └── certificate.json
+│   └── types/
+│       ├── models/
+│       │   ├── Module.ts
+│       │   ├── Lesson.ts
+│       │   ├── Assessment.ts
+│       │   ├── Progress.ts
+│       │   └── index.ts
+│       ├── module.ts
+│       ├── assessment.ts
+│       ├── certificate.ts
+│       ├── api.ts
+│       ├── analytics.ts
+│       └── navigation.ts
+│
+├── shared/
+│   └── components/
+│       ├── Assessment/
+│       │   ├── MCQQuestion.tsx
+│       │   ├── SCQQuestion.tsx
+│       │   └── TrueFalseQuestion.tsx
+│       ├── Button/
+│       │   └── Button.tsx
+│       ├── Card/
+│       │   └── Card.tsx
+│       ├── EmptyState/
+│       ├── ErrorState/
+│       ├── Header/
+│       ├── Loader/
+│       └── ProgressBar/
+│
+├── features/
+│   ├── dashboard/
+│   │   ├── DashboardScreen.tsx
+│   │   └── components/
+│   │       └── DashboardCard.tsx
+│   │
+│   ├── modules/
+│   │   ├── ModulesScreen.tsx
+│   │   ├── ModuleDetailScreen.tsx
+│   │   ├── ModuleCompletionScreen.tsx   # ← moved from screens/
+│   │   ├── moduleSlice.ts               # ← moved from store/slices/
+│   │   ├── moduleApi.ts                 # ← moved from api/ (with USE_MOCK)
+│   │   └── services/
+│   │       └── unlockService.ts         # ← moved from services/
+│   │
+│   ├── video/
+│   │   ├── screens/
+│   │   │   └── VideoPlayerScreen.tsx
+│   │   ├── components/
+│   │   │   ├── VideoPlayer.tsx
+│   │   │   └── LessonTabs.tsx
+│   │   └── services/
+│   │       └── resumeLearningService.ts # ← moved from services/
+│   │
+│   ├── assessments/
+│   │   ├── AssessmentScreen.tsx
+│   │   ├── AssessmentResultScreen.tsx
+│   │   ├── AssessmentsDashboardScreen.tsx
+│   │   ├── assessmentSlice.ts           # ← moved from store/slices/
+│   │   └── assessmentApi.ts             # ← moved from api/ (with USE_MOCK)
+│   │
+│   ├── certificates/
+│   │   ├── CertificateScreen.tsx
+│   │   ├── certificateSlice.ts          # ← moved from store/slices/
+│   │   └── certificateApi.ts            # ← moved from api/ (with USE_MOCK)
+│   │
+│   └── progress/
+│       ├── ProgressScreen.tsx
+│       └── progressSlice.ts             # ← moved from store/slices/
+│       └── progressApi.ts               # ← moved from api/ (with USE_MOCK)
+│
+└── navigation/
+    ├── RootNavigator.tsx                # Simplified (no SDK modal)
+    └── MainTabNavigator.tsx
+```
+
+---
+
+### Phase 4: File-Level Changes
+
+#### Core / App Entry
+
+##### [NEW] `src/appConfig.ts`
+```typescript
+export const appConfig = {
+  baseUrl: 'https://straight-finally-mary-assisted.trycloudflare.com',
+  accessToken: 'dummy-token',
+  appVersion: '1.0.0',
+};
+
+/** Set to true to use mock data, false to call real API endpoints */
+export const USE_MOCK = true;
+```
+
+##### [NEW] `src/App.tsx`
+Replace SDK lifecycle with direct app boot:
+- Wrap with `<Provider store={store}>` + `<SafeAreaProvider>` + `<NavigationContainer>`
+- Dispatch `initializeApp()` on mount (configures API client + Redux state)
+- Render `<RootNavigator />` directly (no modal overlay, no event emitter)
+
+##### [MODIFY] `src/core/store/index.ts` (was `src/store/index.ts`)
+- Rename `createSDKStore` → `createAppStore`
+- Import slices from feature folders instead of `./slices/`
+- Replace `sdkReducer` with `appReducer`
+- Keep typed hooks
+
+##### [NEW] `src/core/store/appSlice.ts` (was `src/store/slices/sdkSlice.ts`)
+- Rename slice name: `'sdk'` → `'app'`
+- Rename actions: `initializeSDK` → `initializeApp`, `launchSDK` → `launchApp`, etc.
+- Remove `sdkVersion` field, add `appVersion`
+- Update selectors accordingly
+
+---
+
+#### API Layer Consolidation (RTK Query + USE_MOCK)
+
+##### [MODIFY] `src/core/api/baseApi.ts`
+- Read token from `state.app.accessToken` (was `state.sdk.accessToken`)
+- Read baseUrl from `state.app.baseUrl` (was `state.sdk.baseUrl`)
+
+##### [MODIFY] `src/core/api/apiConfig.ts` (was `src/api/ApiConfig.ts`)
+- Reused as-is, minor comment cleanup (remove "SDK" references)
+
+##### [MODIFY] Feature API files (moduleApi, assessmentApi, certificateApi, progressApi)
+Each will be modified to support the `USE_MOCK` flag:
+```typescript
+import { USE_MOCK } from '../../appConfig';
+
+// In queryFn:
+if (USE_MOCK) {
+  return { data: mockData };
+}
+// else: real API call via baseQuery
+```
+
+##### [DELETE] `src/api/ApiService.ts`
+Replaced by RTK Query's built-in fetch. Repository methods that used ApiService will be inlined into RTK Query endpoints.
+
+##### [DELETE] `src/repositories/` (entire directory)
+`AssessmentRepository`, `ModuleRepository`, `ProgressRepository` — their logic absorbed into RTK Query endpoints with USE_MOCK branching.
+
+---
+
+#### Feature Slice Migration
+
+| Current Location | New Location | Changes |
+|-----------------|-------------|---------|
+| `store/slices/sdkSlice.ts` | `core/store/appSlice.ts` | Rename to `app`, update actions/selectors |
+| `store/slices/authSlice.ts` | `core/store/authSlice.ts` | Reuse as-is |
+| `store/slices/moduleSlice.ts` | `features/modules/moduleSlice.ts` | Reuse as-is |
+| `store/slices/assessmentSlice.ts` | `features/assessments/assessmentSlice.ts` | Reuse as-is |
+| `store/slices/certificateSlice.ts` | `features/certificates/certificateSlice.ts` | Reuse as-is |
+| `store/slices/progressSlice.ts` | `features/progress/progressSlice.ts` | Reuse as-is |
+
+---
+
+#### Navigation Changes
+
+##### [MODIFY] `src/navigation/RootNavigator.tsx`
+- Remove `independent={true}` from NavigationContainer (no longer nested inside host app)
+- Remove `// @ts-ignore` comment
+- Update imports to new paths
+
+##### [MODIFY] `src/navigation/MainTabNavigator.tsx`
+- Update imports to new paths, no logic changes
+
+---
+
+#### Shared Components
+
+All shared components move from `src/components/` → `src/shared/components/`:
+- `Assessment/{MCQQuestion,SCQQuestion,TrueFalseQuestion}.tsx` — reuse as-is
+- `Button/Button.tsx` — reuse as-is
+- `Card/Card.tsx` — reuse as-is
+- `EmptyState/` — reuse as-is
+- `ErrorState/` — reuse as-is
+- `Header/` — reuse as-is
+- `Loader/` — reuse as-is
+- `ProgressBar/` — reuse as-is
+
+---
+
+#### Files to Delete
+
+| File/Directory | Reason |
+|---------------|--------|
+| `src/sdk/` (5 files) | SDK lifecycle abstraction — replaced by direct app boot |
+| `src/index.tsx` | SDK public export — not needed |
+| `src/multiply.tsx` | Placeholder file |
+| `src/repositories/` (3 files) | Logic absorbed into RTK Query |
+| `src/api/ApiService.ts` | Replaced by RTK Query |
+| `src/screens/Assessment/` | Duplicate — active version in features/ |
+| `src/screens/AssessmentResult/` | Duplicate |
+| `src/screens/Assessments/` | Duplicate |
+| `src/screens/Certificate/` | Duplicate |
+| `src/screens/Dashboard/` | Duplicate |
+| `src/screens/ModuleDetail/` | Duplicate |
+| `src/screens/Modules/` | Duplicate |
+| `src/screens/Progress/` | Duplicate |
+| `src/screens/Video/` | Duplicate |
+| `src/store/slices/` | Moved to feature folders |
+| `example/` | Promoted to root |
+| `tsconfig.build.json` | Builder-bob specific |
+| `turbo.json` | Monorepo tool |
+| `.yarnrc.yml` | Monorepo config |
+| `.yarn/` | Yarn PnP directory |
+
+---
+
+## Files Reusable As-Is (content unchanged, only path changes)
+
+| File | New Path |
+|------|----------|
+| `theme/colors.ts` | `core/theme/colors.ts` |
+| `theme/typography.ts` | `core/theme/typography.ts` |
+| `theme/spacing.ts` | `core/theme/spacing.ts` |
+| `theme/index.ts` | `core/theme/index.ts` |
+| `constants/index.ts` | `core/constants/index.ts` |
+| `types/models/*.ts` | `core/types/models/*.ts` |
+| `types/module.ts` | `core/types/module.ts` |
+| `types/assessment.ts` | `core/types/assessment.ts` |
+| `types/certificate.ts` | `core/types/certificate.ts` |
+| `types/api.ts` | `core/types/api.ts` |
+| `types/analytics.ts` | `core/types/analytics.ts` |
+| `types/navigation.ts` | `core/types/navigation.ts` |
+| `types/index.ts` | `core/types/index.ts` |
+| `mocks/*.ts` & `*.json` | `core/mocks/*` |
+| `store/slices/authSlice.ts` | `core/store/authSlice.ts` |
+| `store/slices/moduleSlice.ts` | `features/modules/moduleSlice.ts` |
+| `store/slices/assessmentSlice.ts` | `features/assessments/assessmentSlice.ts` |
+| `store/slices/certificateSlice.ts` | `features/certificates/certificateSlice.ts` |
+| `store/slices/progressSlice.ts` | `features/progress/progressSlice.ts` |
+| `components/**` | `shared/components/**` |
+| `features/dashboard/*` | `features/dashboard/*` (same) |
+| `features/modules/*` | `features/modules/*` (same) |
+| `features/assessments/*` | `features/assessments/*` (same) |
+| `features/certificates/*` | `features/certificates/*` (same) |
+| `features/progress/*` | `features/progress/*` (same) |
+| `features/video/**` | `features/video/**` (same) |
+| `navigation/MainTabNavigator.tsx` | `navigation/MainTabNavigator.tsx` (same) |
+
+---
+
+## Files That Must Be Rewritten
+
+| File | Reason |
+|------|--------|
+| `src/App.tsx` | SDK lifecycle → direct app boot |
+| `package.json` | SDK library → standalone app |
+| `babel.config.js` | Remove builder-bob dependency |
+| `metro.config.js` | Remove monorepo config |
+| `src/core/store/index.ts` | Import paths change, rename factory |
+| `src/core/store/appSlice.ts` | Rename from sdkSlice, update names |
+| `src/core/api/baseApi.ts` | Reference `state.app` instead of `state.sdk` |
+| `src/navigation/RootNavigator.tsx` | Remove `independent={true}`, update imports |
+| `src/features/modules/moduleApi.ts` | Add USE_MOCK + absorb repository logic |
+| `src/features/assessments/assessmentApi.ts` | Add USE_MOCK + absorb repository logic |
+| `src/features/certificates/certificateApi.ts` | Add USE_MOCK |
+| `src/features/progress/progressApi.ts` | Add USE_MOCK |
+| `src/core/store/middleware/analyticsMiddleware.ts` | Update action type mappings (sdk → app) |
+
+---
+
+## Risk Assessment
+
+| Risk | Severity | Mitigation |
+|------|----------|------------|
+| **Import path breakage** | High | Systematic find-and-replace; TypeScript compiler will catch missing imports |
+| **Android native project path issues** | Medium | Verify `settings.gradle` and `build.gradle` after moving `android/` to root |
+| **iOS native project path issues** | Medium | Verify `Podfile` paths after moving `ios/` to root |
+| **Redux state shape change** | Low | Only `state.sdk` → `state.app` rename; all selectors updated together |
+| **Mock → API switch regression** | Low | `USE_MOCK` flag ensures mock path stays functional |
+| **RTK Query cache invalidation** | Low | Tag types preserved as-is |
+| **Lost functionality in repository removal** | Medium | AssessmentRepository has significant logic (API + mock fallback + grading); must be fully absorbed into assessmentApi |
+
+---
+
+## Verification Plan
+
+### Automated Tests
+```bash
+# TypeScript compilation check
+npx tsc --noEmit
+
+# Lint check
+npx eslint "src/**/*.{ts,tsx}"
+```
+
+### Manual Verification
+1. **Build**: `npx react-native run-android` — ensure the app builds and launches
+2. **Navigation**: Verify all 4 tabs (Home, Modules, Assessments, Progress) render correctly
+3. **Module flow**: Dashboard → Module Detail → Video Player → Assessment → Result → Module Completion
+4. **Mock mode**: Verify `USE_MOCK = true` shows mock data correctly
+5. **API mode**: Verify `USE_MOCK = false` attempts real API calls (may fail without backend, but should not crash)
+6. **Certificate**: Verify certificate screen loads from mock data
+
+### Import Verification
+```bash
+# Ensure no SDK imports remain
+grep -r "react-native-learning-sdk" src/
+grep -r "from.*sdk/" src/
+grep -r "LearningSDK\." src/
+```
+
+---
+
+## Execution Order
+
+1. Create `independent` branch
+2. Restructure root (move android/, ios/, index.js, app.json)
+3. Rewrite package.json, babel.config.js, metro.config.js
+4. Create `src/` directory structure
+5. Move and organize files per architecture plan
+6. Rewrite App.tsx, store, appSlice, baseApi
+7. Update all import paths
+8. Integrate USE_MOCK into API endpoints
+9. Delete SDK-specific and duplicate files
+10. TypeScript compilation check
+11. Build and test on device

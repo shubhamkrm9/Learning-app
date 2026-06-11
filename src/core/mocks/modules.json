@@ -1,0 +1,35 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": "module_1",
+      "title": "Introduction to React Native",
+      "description": "React Native fundamentals and core concepts.",
+      "totalVideos": 2,
+      "completedVideos": 2,
+      "completionPercentage": 100,
+      "isLocked": false,
+      "isCompleted": true
+    },
+    {
+      "id": "module_2",
+      "title": "Navigation in SDK",
+      "description": "Understanding React Navigation in an isolated SDK environment.",
+      "totalVideos": 2,
+      "completedVideos": 0,
+      "completionPercentage": 0,
+      "isLocked": false,
+      "isCompleted": false
+    },
+    {
+      "id": "module_3",
+      "title": "State Management & RTK",
+      "description": "Advanced state management using Redux Toolkit and RTK Query.",
+      "totalVideos": 3,
+      "completedVideos": 0,
+      "completionPercentage": 0,
+      "isLocked": true,
+      "isCompleted": false
+    }
+  ]
+}

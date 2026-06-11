@@ -1,0 +1,48 @@
+{
+  "assessment_1": {
+    "success": true,
+    "data": {
+      "id": "assessment_1",
+      "passingPercentage": 75,
+      "questions": [
+        {
+          "id": "q1_1",
+          "type": "SCQ",
+          "question": "React Native is developed by?",
+          "options": ["Google", "Meta", "Amazon", "Microsoft"],
+          "correctAnswers": ["Meta"]
+        },
+        {
+          "id": "q1_2",
+          "type": "MCQ",
+          "question": "Which of the following are valid React Native components?",
+          "options": ["View", "Div", "Text", "Span"],
+          "correctAnswers": ["View", "Text"]
+        },
+        {
+          "id": "q1_3",
+          "type": "TRUE_FALSE",
+          "question": "React Native uses a single thread for both UI and JavaScript execution.",
+          "options": ["True", "False"],
+          "correctAnswers": ["False"]
+        }
+      ]
+    }
+  },
+  "assessment_2": {
+    "success": true,
+    "data": {
+      "id": "assessment_2",
+      "passingPercentage": 75,
+      "questions": [
+        {
+          "id": "q2_1",
+          "type": "SCQ",
+          "question": "What is the primary library used for routing in this SDK?",
+          "options": ["React Router", "React Navigation", "Expo Router"],
+          "correctAnswers": ["React Navigation"]
+        }
+      ]
+    }
+  }
+}
