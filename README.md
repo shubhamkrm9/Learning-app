@@ -1,6 +1,6 @@
 # Learning App
 
-A modern, standalone React Native application dedicated to delivering educational modules, video courses, assessments, and progress tracking. 
+A modern, React Native application dedicated to delivering educational modules, video courses, assessments, and progress tracking. 
 
 
 
